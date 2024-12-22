@@ -44,6 +44,11 @@
     </style>
 </head>
 <body>
+    <audio autoplay loop>
+        <source src="static/audio/yesu.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
     <h1>Welcome, {{ name }}</h1>
     <p>Your Secret Santa recipient is: <strong>{{ assigned_to }}</strong></p>
     <button onclick="location.href='/logout'">Logout</button>

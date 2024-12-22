@@ -1,4 +1,5 @@
 import sqlite3
+import random
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 
 app = Flask(__name__)
@@ -35,9 +36,30 @@ def get_db_connection():
 def home():
     return render_template('home.html')
 
+# Coordinator Login Route
+@app.route('/coordinator-login', methods=['GET', 'POST'])
+def coordinator_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Check if the login credentials match
+        if username == 'coordinator' and password == 'admin123':
+            session['coordinator'] = username  # Store in session to check for further access
+            return redirect(url_for('register'))  # Redirect to register page
+        else:
+            flash('Invalid credentials. Please try again.', 'error')
+            return redirect(url_for('coordinator_login'))
+
+    return render_template('coordinator-login.html')
+
 # Coordinator: Register Participants
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if 'coordinator' not in session:
+        flash('You need to log in as a coordinator first.', 'error')
+        return redirect(url_for('coordinator_login'))  # Redirect to coordinator login
+
     if request.method == 'POST':
         name = request.form['name']
         username = request.form['username']
@@ -114,6 +136,7 @@ def dashboard():
     name = cursor.fetchone()[0]
     conn.close()
     return render_template('dashboard.html', name=name, assigned_to=assigned_to)
+
 @app.route('/participants', methods=['GET', 'POST'])
 def participants_list():
     conn = get_db_connection()
@@ -134,7 +157,15 @@ def participants_list():
     conn.close()
 
     return render_template('participants.html', participants=participants)
-# Logout
+
+# Coordinator Logout
+@app.route('/coordinator-logout')
+def coordinator_logout():
+    session.pop('coordinator', None)
+    flash('You have been logged out as the coordinator.')
+    return redirect(url_for('home'))
+
+# Participant Logout
 @app.route('/logout')
 def logout():
     session.pop('username', None)
